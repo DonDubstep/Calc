@@ -18,13 +18,21 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    QString term[2];
+    QString display_expression;
     int el_num = 0;
+    char sign;
+    int result = 0;
+    void switchTerm();
+    void take_an_operation(int, QString);
 
 private slots:
     void digit_clicked(const QString& num);
     void slotShowAction(const QString& str);
 
+
+    void on_symb_plus_clicked();
+
+    void on_symb_equal_clicked();
 
 private:
     Ui::MainWindow *ui;

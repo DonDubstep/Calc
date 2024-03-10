@@ -6,8 +6,10 @@
 
 // TODO:
 // Сделать обработку вводимого числа (чтоб ноль в начале не был и ограничить число по размеру)
-// После нажатия на знаки менять элемент массива числа
-// Преобразовать в int и вывести результат
+// Отделять 3 цифры запятой на отображении
+// Рисовать всё выражение
+// Сделать аналогично с другими знаками
+// Работать с нецелыми числами
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -19,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(psigMapperDigit, SIGNAL(mappedString(const QString&)),
             this, SLOT(digit_clicked(const QString&))
             );
+
 
     // Перенаправление всех кнопок в один слот
     connect(ui->digit_0, SIGNAL(clicked()), psigMapperDigit, SLOT(map()));
@@ -49,6 +52,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::switchTerm()
+{
+    el_num = el_num == 0 ? 1 : 0;
+}
+
 void MainWindow::slotShowAction(const QString& str)
 {
     qDebug() << str;
@@ -56,6 +64,67 @@ void MainWindow::slotShowAction(const QString& str)
 
 void MainWindow::digit_clicked(const QString& num)
 {
-    term[el_num].append(num);
-    ui->display->setText(term[el_num]);
+    display_expression.append(num);
+    ui->display->setText(display_expression);
 }
+
+void MainWindow::on_symb_plus_clicked()
+{
+    display_expression.append('+');
+    ui->display->setText(display_expression);
+}
+
+void MainWindow::take_an_operation(int sign, QString term)
+{
+    switch(sign)
+    {
+    case '+':
+        result += term.toInt();
+        break;
+    case '-':
+        result -= term.toInt();
+        break;
+    case '*':
+        result *= term.toInt();
+        break;
+    case '/':
+        result /= term.toInt();
+        break;
+    }
+}
+
+void MainWindow::on_symb_equal_clicked()
+{
+    sign = ' ';
+    QString term;
+    for(int i = 0; i < display_expression.length(); i++)
+    {
+        term.append(display_expression[i]);
+        if(display_expression[i] == '+')
+        {
+            if(sign == ' ')
+            {
+                result = term.toInt();
+                sign = '+';
+            }
+//        else if(display_expression[i] == '-')
+//            {
+//                if(sign == ' ')
+//                {
+//                    result = term.toInt();
+//                    sign = '-';
+//                }
+//            }
+            else
+            {
+                take_an_operation(sign, term);
+                qDebug() << result;
+                term.clear();
+            }
+        }
+    }
+    take_an_operation(sign, term);
+    term.clear();
+    ui->display->setNum(result);
+}
+
