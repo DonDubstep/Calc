@@ -5,11 +5,11 @@
 
 
 // TODO:
-// Сделать обработку вводимого числа (чтоб ноль в начале не был и ограничить число по размеру)
 // Отделять 3 цифры запятой на отображении
 // Рисовать всё выражение
 // Сделать аналогично с другими знаками
 // Работать с нецелыми числами
+// Сделать обработку вводимого числа (чтоб ноль в начале не был и ограничить число по размеру)
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -62,8 +62,13 @@ void MainWindow::slotShowAction(const QString& str)
     qDebug() << str;
 }
 
+
 void MainWindow::digit_clicked(const QString& num)
 {
+    if(display_expression == "0" && num == "0")
+        return;
+//    if(display_expression.length() % 3 == 0 && display_expression.length() != 0)
+//        display_expression.append(",");
     display_expression.append(num);
     ui->display->setText(display_expression);
 }
@@ -99,13 +104,16 @@ void MainWindow::on_symb_equal_clicked()
     QString term;
     for(int i = 0; i < display_expression.length(); i++)
     {
-        term.append(display_expression[i]);
+//        if(display_expression[i] == ',')
+//            continue;
         if(display_expression[i] == '+')
         {
             if(sign == ' ')
             {
                 result = term.toInt();
                 sign = '+';
+                term.clear();
+                continue;
             }
 //        else if(display_expression[i] == '-')
 //            {
@@ -118,13 +126,12 @@ void MainWindow::on_symb_equal_clicked()
             else
             {
                 take_an_operation(sign, term);
-                qDebug() << result;
                 term.clear();
             }
         }
+        term.append(display_expression[i]);
     }
     take_an_operation(sign, term);
-    term.clear();
     ui->display->setNum(result);
 }
 

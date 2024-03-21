@@ -19,6 +19,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     QString display_expression;
+    QString expression;
     int el_num = 0;
     char sign;
     int result = 0;
