@@ -19,21 +19,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     QString display_expression;
-    QString expression;
-    int el_num = 0;
-    char sign;
-    int result = 0;
-    void switchTerm();
-    void take_an_operation(int, QString);
+
 
 private slots:
     void digit_clicked(const QString& num);
-    void slotShowAction(const QString& str);
-
-
-    void on_symb_plus_clicked();
 
     void on_symb_equal_clicked();
+    QString parse(QString disp_expr);
 
 private:
     Ui::MainWindow *ui;

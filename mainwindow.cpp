@@ -2,8 +2,7 @@
 #include "./ui_mainwindow.h"
 #include <QDebug>
 #include <QSignalMapper>
-
-
+#include <string.h>
 // TODO:
 // Отделять 3 цифры запятой на отображении
 // Рисовать всё выражение
@@ -44,94 +43,95 @@ MainWindow::MainWindow(QWidget *parent)
     psigMapperDigit->setMapping(ui->digit_8, "8");
     connect(ui->digit_9, SIGNAL(clicked()), psigMapperDigit, SLOT(map()));
     psigMapperDigit->setMapping(ui->digit_9, "9");
-//    connect(ui->digit_0, SIGNAL(clicked()), SLOT(digit_clicked()));
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-
-void MainWindow::switchTerm()
+// Алгоритм написан, осталось отыскать багу логами (повыводи Stack и отследи его состояние)
+QString MainWindow::parse(QString disp_expr)
 {
-    el_num = el_num == 0 ? 1 : 0;
+    QStringList Stack;
+    auto len = disp_expr.length();
+    QString cur_str;
+    int i;
+    QChar last_sign;
+    for(i = 0; i < len; i++)
+    {
+        for(int k = 0; k < Stack.length(); k++)
+        {
+            qDebug() << Stack[k];
+        }
+        if (disp_expr[i] >= QChar('0') && disp_expr[i] <= QChar('9'))
+        {
+            cur_str.append(disp_expr[i]);
+            continue;
+        }
+        if (disp_expr[i] == '+' || disp_expr[i] == '-' || disp_expr[i] == '*' || disp_expr[i] == '/')
+        {
+            if(Stack.length() < 3)
+            {
+                Stack.append(cur_str);
+                cur_str.clear();
+                Stack.append(cur_str);
+                last_sign = disp_expr[i];
+                continue;
+            }
+            if ((disp_expr[i] == '*' || disp_expr[i] == '/') && (last_sign == '+' || last_sign == '-'))
+            {
+                Stack.append(cur_str);
+            }
+            else
+            {
+                int last = Stack.back().toInt();
+                Stack.pop_back();
+                int cur = cur_str.toInt();
+                char cur_sign = Stack.back().toStdString()[0];
+                Stack.pop_back();
+                switch(cur_sign)
+                {
+                case '+': Stack.append(QString::number(last + cur)); break;
+                case '-': Stack.append(QString::number(last - cur)); break;
+                case '*': Stack.append(QString::number(last * cur)); break;
+                case '/': Stack.append(QString::number(last / cur)); break;
+                }
+            }
+            cur_str.clear();
+            Stack.append(disp_expr[i]);
+        }
+    }
+    while(Stack.length() > 1)
+    {
+        int lastval = Stack.back().toInt();
+        Stack.pop_back();
+        char cur_sign = Stack.back().toStdString()[0];
+        int result;
+        switch(cur_sign)
+        {
+        case '+': result = Stack.back().toInt() + lastval; break;
+        case '-': result = Stack.back().toInt() - lastval; break;
+        case '*': result = Stack.back().toInt() * lastval; break;
+        case '/': result = Stack.back().toInt() / lastval; break;
+        }
+        Stack.pop_back();
+        Stack.push_back(QString::number(result));
+    }
+    return Stack.back();
 }
-
-void MainWindow::slotShowAction(const QString& str)
-{
-    qDebug() << str;
-}
-
 
 void MainWindow::digit_clicked(const QString& num)
 {
     if(display_expression == "0" && num == "0")
         return;
-//    if(display_expression.length() % 3 == 0 && display_expression.length() != 0)
-//        display_expression.append(",");
     display_expression.append(num);
     ui->display->setText(display_expression);
 }
 
-void MainWindow::on_symb_plus_clicked()
-{
-    display_expression.append('+');
-    ui->display->setText(display_expression);
-}
-
-void MainWindow::take_an_operation(int sign, QString term)
-{
-    switch(sign)
-    {
-    case '+':
-        result += term.toInt();
-        break;
-    case '-':
-        result -= term.toInt();
-        break;
-    case '*':
-        result *= term.toInt();
-        break;
-    case '/':
-        result /= term.toInt();
-        break;
-    }
-}
-
 void MainWindow::on_symb_equal_clicked()
 {
-    sign = ' ';
-    QString term;
-    for(int i = 0; i < display_expression.length(); i++)
-    {
-//        if(display_expression[i] == ',')
-//            continue;
-        if(display_expression[i] == '+')
-        {
-            if(sign == ' ')
-            {
-                result = term.toInt();
-                sign = '+';
-                term.clear();
-                continue;
-            }
-//        else if(display_expression[i] == '-')
-//            {
-//                if(sign == ' ')
-//                {
-//                    result = term.toInt();
-//                    sign = '-';
-//                }
-//            }
-            else
-            {
-                take_an_operation(sign, term);
-                term.clear();
-            }
-        }
-        term.append(display_expression[i]);
-    }
-    take_an_operation(sign, term);
-    ui->display->setNum(result);
+    qDebug() << "Equal";
+    QString temp_expr  = "10+5*2+9";
+    qDebug() << parse(temp_expr);
 }
 
